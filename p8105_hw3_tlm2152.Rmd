@@ -1,0 +1,44 @@
+---
+title: "P8105 - Homework 3"
+author: "Tucker Morgan (tlm2152)"
+date: "10/13/2021"
+output: github_document
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(viridis)
+```
+
+## Problem 1
+I'll start by loading in the `instacart` dataset.
+```{r instacart import}
+library(p8105.datasets)
+data("instacart")
+head(instacart)
+```
+There are a total of `r nrow(instacart)` observations in the dataset and `r ncol(instacart)` variables. These data are arranged in a `tibble` and describe shopping information including `order_id`, `product_id`, `product name`, and `aisle`. For instance, for `order_id = 1`, the customer ordered Bulgarian Yogurt from the yoghurt aisle, Organic Celery Hearts from fresh vegetables, and Grated Pecorino Romano Cheese from the specialty cheeses section among other items.
+```{r aisle summary}
+count(distinct(instacart, aisle_id))
+instacart %>% 
+  group_by(aisle) %>% 
+  summarize(n_purch = n()) %>% 
+  arrange(desc(n_purch))
+```
+There are a total of `r count(distinct(instacart, aisle_id))` unique aisles. The aisles ordered from most frequently are `fresh vegetables`, `fresh fruits`, and `packaged vegetables fruits`. This is somewhat comforting.
+```{r aisle plot}
+instacart %>% 
+  group_by(aisle) %>% 
+  summarize(n_purch = n()) %>% 
+  filter(n_purch >= 10000) %>% 
+  arrange(n_purch) %>% 
+  mutate(aisle = factor(aisle, levels = aisle[order(n_purch, decreasing = TRUE)])) %>% 
+  ggplot(aes(x = aisle, y = n_purch, fill = aisle)) +
+  geom_bar(stat = "identity", alpha = 0.9) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = -90, vjust = .35, hjust = 0)) +
+  scale_fill_viridis_d() +
+  labs(x = "Aisle Name", y = "Number of Purchases", title = "Number of Instacart Purchases by Aisle")
+```
+
+
