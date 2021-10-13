@@ -46,14 +46,18 @@ Next, I'll look at the most ordered items in the "baking ingredients", "dog food
 aisle_table <- 
   instacart %>% 
   filter(aisle == c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
-  select(product_name, aisle) %>% 
+  select(aisle, product_name) %>% 
   group_by(aisle, product_name) %>% 
   summarize(n_purch = n()) %>% 
   arrange(desc(n_purch)) %>% 
   slice(1:3) %>% 
   mutate(rank = rank(desc(n_purch))) %>% 
-  mutate(product_count = product_name - n_purch)
-#  pivot_wider(names_from = aisle, values_from = c(product_name, n_purch))
+  mutate(product_count = paste(product_name, "-", n_purch, "orders")) %>% 
+  select(-n_purch, -product_name) %>% 
+  pivot_wider(names_from = aisle, values_from = product_count)
+knitr::kable(aisle_table,
+             format = "simple",
+             caption = "Top Three Purchased Products by Aisle")
 ```
 
 
