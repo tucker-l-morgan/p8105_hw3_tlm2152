@@ -68,7 +68,7 @@ daily_table <-
   filter(product_name == c("Coffee Ice Cream", "Pink Lady Apples")) %>% 
   select(order_dow, order_hour_of_day, product_name) %>% 
   group_by(product_name, order_dow) %>% 
-  summarize(daily_mean = mean(order_hour_of_day)) %>% 
+  summarize(daily_mean = round(mean(order_hour_of_day), digits = 2)) %>% 
   pivot_wider(names_from = product_name, values_from = daily_mean) %>% 
   mutate(order_dow = wday(order_dow + 1, label = TRUE))
 knitr::kable(daily_table,
@@ -77,3 +77,34 @@ knitr::kable(daily_table,
 ```
 
 Looks like Pink Lady Apples are typically purchased earlier in the day, around noon, whereas Coffee Ice Cream might be more of an afternoon treat. It would be interesting to test for a significant difference between these times.
+
+## Problem 2
+I'll start by loading in the `brfss_smart2010` dataset and cleaning it up a bit.
+```{r BRFSS import}
+data("brfss_smart2010")
+head(brfss_smart2010)
+```
+
+```{r BRFSS cleaning}
+brfss_clean <- 
+  brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health") %>% 
+  mutate(response = as_factor(response)) %>% 
+  arrange(desc(response)) %>% 
+  rename(location_abbr = locationabbr, location_desc = locationdesc, resp_id = respid)
+```
+
+```{r observations by state, collapse = TRUE}
+brfss_states <- 
+  brfss_clean %>% 
+  group_by(year, location_abbr) %>% 
+  summarize(state_count = n()) %>% 
+  filter(year == 2002 | year == 2010, state_count >= 7) %>% 
+  pivot_wider(names_from = year, values_from = state_count)
+knitr::kable(brfss_states,
+             format = "simple",
+             caption = "States with 7 or more observation sites in 2002 and 2010")
+```
+
+There are `r nrow(brfss_states %>% select("2002") %>% drop_na())` states with 7 or more observation locations in 2002 compared to `r nrow(brfss_states %>% select("2010") %>% drop_na())` states with 7 or more observation locations in 2010.
