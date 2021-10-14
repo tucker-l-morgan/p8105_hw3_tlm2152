@@ -8,6 +8,7 @@ output: github_document
 ```{r setup, message = FALSE}
 library(tidyverse)
 library(viridis)
+library(lubridate)
 ```
 
 ## Problem 1
@@ -60,4 +61,19 @@ knitr::kable(aisle_table,
              caption = "Top Three Purchased Products by Aisle")
 ```
 
+Next I'll look at the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week.
+```{r apples and ice cream}
+daily_table <- 
+  instacart %>% 
+  filter(product_name == c("Coffee Ice Cream", "Pink Lady Apples")) %>% 
+  select(order_dow, order_hour_of_day, product_name) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(daily_mean = mean(order_hour_of_day)) %>% 
+  pivot_wider(names_from = product_name, values_from = daily_mean) %>% 
+  mutate(order_dow = wday(order_dow + 1, label = TRUE))
+knitr::kable(daily_table,
+             format = "simple",
+             caption = "Mean Order Time on Each Day of the Week")
+```
 
+Looks like Pink Lady Apples are typically purchased earlier in the day, around noon, whereas Coffee Ice Cream might be more of an afternoon treat. It would be interesting to test for a significant difference between these times.
