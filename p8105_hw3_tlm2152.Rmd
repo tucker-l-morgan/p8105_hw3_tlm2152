@@ -39,7 +39,7 @@ instacart %>%
   theme(legend.position = "none",
         axis.text.x = element_text(angle = -90, vjust = .35, hjust = 0)) +
   scale_fill_viridis_d() +
-  labs(x = "Aisle Name", y = "Number of Purchases", title = "Number of Instacart Purchases by Aisle") +
+  labs(x = "Aisle Name", y = "Number of Purchases", title = "Figure 1.1: Number of Instacart Purchases by Aisle") +
   theme(plot.title = element_text(face = "bold"))
 ```
 
@@ -58,10 +58,10 @@ aisle_table <-
   select(-n_purch, -product_name) %>% 
   pivot_wider(names_from = aisle, values_from = product_count)
 knitr::kable(aisle_table,
-             format = "simple",
-             caption = "**Top Three Purchased Products by Aisle**",
+             format = "markdown",
+             caption = "**Table 1.1: Top Three Purchased Products by Aisle**",
              col.names = str_to_title(names(aisle_table)))
-```
+``` 
 
 I'll also look at the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week.
 ```{r apples and ice cream, message = FALSE}
@@ -75,7 +75,7 @@ daily_table <-
   mutate(order_dow = wday(order_dow + 1, label = TRUE))
 knitr::kable(daily_table,
              format = "simple",
-             caption = "**Mean Order Time on Each Day of the Week**",
+             caption = "**Table 1.2: Mean Order Time on Each Day of the Week**",
              col.names = c("Day", "Coffee Ice Cream", "Pink Lady Apples"))
 ```
 
@@ -107,7 +107,7 @@ brfss_states <-
   pivot_wider(names_from = year, values_from = state_count)
 knitr::kable(brfss_states,
              format = "simple",
-             caption = "**States with 7 or more observation sites in 2002 and 2010**",
+             caption = "**Table 2.1: States with 7 or more observation sites in 2002 and 2010**",
              col.names = c("State", "2002", "2010"))
 ```
 
@@ -122,7 +122,7 @@ brfss_clean %>%
   ggplot(aes(x = year, y = mean_data_value, group = state, color = state)) +
   geom_line() +
   scale_color_viridis_d() +
-  labs(x = "Year", y = "Mean Data Value", title = "Mean Data Value by State") +
+  labs(x = "Year", y = "Mean Data Value", title = "Figure 2.1: Mean Data Value by State") +
   theme(plot.title = element_text(face = "bold"))
 ```
 
@@ -133,7 +133,7 @@ brfss_clean %>%
   geom_point() +
   facet_grid(~year) +
   theme(legend.position = "none") +
-  labs(x = "Response", y = "Data Value", title = "Data Value Distributions in New York State") +
+  labs(x = "Response", y = "Data Value", title = "Figure 2.2: Data Value Distributions in New York State") +
   theme(plot.title = element_text(face = "bold"))
 ```
 
@@ -165,7 +165,7 @@ accel_daily_table <-
   summarize(total_activity = sum(activity_level))
 knitr::kable(accel_daily_table,
              format = "simple",
-             caption = "**Total Activity Each Day of the Week**",
+             caption = "**Table 3.1: Total Activity Each Day of the Week**",
              col.names = c("Day", "Total Activity"))
 ```
 
@@ -180,7 +180,7 @@ accel_plot <-
   geom_smooth(se = FALSE, color = "black", size = 1.5) +
   geom_smooth(se = FALSE, size = 1) +
   scale_color_viridis_d(name = "Day of the Week") +
-  labs(x = "Time of Day", y = "Activity Level", title = "Daily Activity for Each Day of the Week") +
+  labs(x = "Time of Day", y = "Activity Level", title = "Figure 3.1: Daily Activity for Each Day of the Week") +
   scale_x_continuous(breaks = c(0, 360, 720, 1080, 1440),
                      labels = c("Midnight", "6:00am", "Noon", "6:00pm", "Midnight")) +
   theme(plot.title = element_text(face = "bold"))
