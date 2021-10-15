@@ -39,7 +39,8 @@ instacart %>%
   theme(legend.position = "none",
         axis.text.x = element_text(angle = -90, vjust = .35, hjust = 0)) +
   scale_fill_viridis_d() +
-  labs(x = "Aisle Name", y = "Number of Purchases", title = "Number of Instacart Purchases by Aisle")
+  labs(x = "Aisle Name", y = "Number of Purchases", title = "Number of Instacart Purchases by Aisle") +
+  theme(plot.title = element_text(face = "bold"))
 ```
 
 Next, I'll look at the most ordered items in the "baking ingredients", "dog food care", and "packaged vegetables fruits" aisles.
@@ -58,7 +59,8 @@ aisle_table <-
   pivot_wider(names_from = aisle, values_from = product_count)
 knitr::kable(aisle_table,
              format = "simple",
-             caption = "Top Three Purchased Products by Aisle")
+             caption = "**Top Three Purchased Products by Aisle**",
+             col.names = str_to_title(names(aisle_table)))
 ```
 
 I'll also look at the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week.
@@ -73,7 +75,8 @@ daily_table <-
   mutate(order_dow = wday(order_dow + 1, label = TRUE))
 knitr::kable(daily_table,
              format = "simple",
-             caption = "Mean Order Time on Each Day of the Week")
+             caption = "**Mean Order Time on Each Day of the Week**",
+             col.names = c("Day", "Coffee Ice Cream", "Pink Lady Apples"))
 ```
 
 Looks like Pink Lady Apples are typically purchased earlier in the day, around noon, whereas Coffee Ice Cream might be more of an afternoon treat. It would be interesting to test for a significant difference between these times.
@@ -104,7 +107,8 @@ brfss_states <-
   pivot_wider(names_from = year, values_from = state_count)
 knitr::kable(brfss_states,
              format = "simple",
-             caption = "States with 7 or more observation sites in 2002 and 2010")
+             caption = "**States with 7 or more observation sites in 2002 and 2010**",
+             col.names = c("State", "2002", "2010"))
 ```
 
 There are `r nrow(brfss_states %>% select("2002") %>% drop_na())` states with 7 or more observation locations in 2002 compared to `r nrow(brfss_states %>% select("2010") %>% drop_na())` states with 7 or more observation locations in 2010.
@@ -118,7 +122,8 @@ brfss_clean %>%
   ggplot(aes(x = year, y = mean_data_value, group = state, color = state)) +
   geom_line() +
   scale_color_viridis_d() +
-  labs(x = "Year", y = "Mean Data Value")
+  labs(x = "Year", y = "Mean Data Value", title = "Mean Data Value by State") +
+  theme(plot.title = element_text(face = "bold"))
 ```
 
 ```{r New York State}
@@ -128,7 +133,8 @@ brfss_clean %>%
   geom_point() +
   facet_grid(~year) +
   theme(legend.position = "none") +
-  labs(x = "Response", y = "Data Value", title = "Data Value Distributions in New York State")
+  labs(x = "Response", y = "Data Value", title = "Data Value Distributions in New York State") +
+  theme(plot.title = element_text(face = "bold"))
 ```
 
 ## Problem 3
@@ -136,11 +142,13 @@ brfss_clean %>%
 ```{r accelerometer data import, message = FALSE}
 accel_data_df <- 
   read_csv("./Data/accel_data.csv") %>% 
-  mutate(day = as.factor(day)) %>% 
+  mutate(day = factor(day,
+                      levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",  "Saturday"))) %>% 
   pivot_longer(cols = activity.1:activity.1440,
                names_to = "minute",
                names_prefix = "activity.",
                values_to = "activity_level") %>% 
+  mutate(minute = as.double(minute)) %>% 
   mutate(week_end = as.factor(case_when(
     day == "Saturday" ~ "weekend",
     day == "Sunday" ~ "weekend",
@@ -157,7 +165,35 @@ accel_daily_table <-
   summarize(total_activity = sum(activity_level))
 knitr::kable(accel_daily_table,
              format = "simple",
-             caption = "Total Activity Each Day of the Week")
+             caption = "**Total Activity Each Day of the Week**",
+             col.names = c("Day", "Total Activity"))
 ```
 
 Saturday is by far the day with the least activity with Wednesday, Thursday, and Friday having the most activity.
+
+```{r accelerometer daily plot}
+accel_plot <- 
+  accel_data_df %>% 
+  group_by(day) %>% 
+  ggplot(aes(x = minute, y = activity_level, group = day, color = day)) +
+  geom_line(alpha = 0.7) + 
+  geom_smooth(se = FALSE, color = "black", size = 1.5) +
+  geom_smooth(se = FALSE, size = 1) +
+  scale_color_viridis_d(name = "Day of the Week") +
+  labs(x = "Time of Day", y = "Activity Level", title = "Daily Activity for Each Day of the Week") +
+  scale_x_continuous(breaks = c(0, 360, 720, 1080, 1440),
+                     labels = c("Midnight", "6:00am", "Noon", "6:00pm", "Midnight")) +
+  theme(plot.title = element_text(face = "bold"))
+accel_plot
+```
+
+Based on the plot above, I can make a few general observations:
+  
+  * The time of day with the lowest typical activity level across all seven days of the week is from midnight to 6:00am. And we can see that the activity level starts to taper off at the end of the day approaching midnight. This is not surprising since this is the time of day that most people sleep and are inactive.
+  * Activity seems to peak around noon, particularly on Sunday, and in the evening, particularly on Friday evening. This could be a result of social gatherings for the participant.
+  * Although Saturday is the least active day overall, Saturday evening has higher activity levels than Sunday and Tuesday. I've added a zoomed-in version of the plot below so the smoothed lines can be seen more distinctly.
+
+```{r zoomed-in accel plot}
+accel_plot + coord_cartesian(ylim = c(0, 2000)) + theme(legend.position = "bottom")
+```
+
