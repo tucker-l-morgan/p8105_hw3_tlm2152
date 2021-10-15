@@ -131,3 +131,33 @@ brfss_clean %>%
   labs(x = "Response", y = "Data Value", title = "Data Value Distributions in New York State")
 ```
 
+## Problem 3
+
+```{r accelerometer data import, message = FALSE}
+accel_data_df <- 
+  read_csv("./Data/accel_data.csv") %>% 
+  mutate(day = as.factor(day)) %>% 
+  pivot_longer(cols = activity.1:activity.1440,
+               names_to = "minute",
+               names_prefix = "activity.",
+               values_to = "activity_level") %>% 
+  mutate(week_end = as.factor(case_when(
+    day == "Saturday" ~ "weekend",
+    day == "Sunday" ~ "weekend",
+    TRUE ~ "weekday"
+    )))
+head(accel_data_df)
+```
+I've read in the `accel_data.csv` file and changed some of the variables. I converted `day` to a factor variable with seven levels, one for each day. I pivoted the `activity.1:activity.1440` variables into one `minute` variable with the values going to `activity_level`. So instead of 1,443 variables, I have `r ncol(accel_data_df)` variables with `r nrow(accel_data_df)` observations. I've added a `week_end` factor variable to indicate if the day is during the week (Monday - Friday) or the weekend (Saturday and Sunday).
+
+```{r accelerometer daily table}
+accel_daily_table <- 
+  accel_data_df %>% 
+  group_by(day) %>% 
+  summarize(total_activity = sum(activity_level))
+knitr::kable(accel_daily_table,
+             format = "simple",
+             caption = "Total Activity Each Day of the Week")
+```
+
+Saturday is by far the day with the least activity with Wednesday, Thursday, and Friday having the most activity.
