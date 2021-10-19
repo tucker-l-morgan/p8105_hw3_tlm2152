@@ -58,7 +58,7 @@ aisle_table <-
   select(-n_purch, -product_name) %>% 
   pivot_wider(names_from = aisle, values_from = product_count)
 knitr::kable(aisle_table,
-             format = "markdown",
+             format = "pipe",
              caption = "**Table 1.1: Top Three Purchased Products by Aisle**",
              col.names = str_to_title(names(aisle_table)))
 ``` 
@@ -96,6 +96,7 @@ brfss_clean <-
   mutate(response = as_factor(response)) %>% 
   arrange(desc(response)) %>% 
   rename(state = locationabbr, location_desc = locationdesc, resp_id = respid)
+rm(brfss_smart2010)
 ```
 
 ```{r observations by state}
@@ -111,20 +112,40 @@ knitr::kable(brfss_states,
              col.names = c("State", "2002", "2010"))
 ```
 
-There are `r nrow(brfss_states %>% select("2002") %>% drop_na())` states with 7 or more observation locations in 2002 compared to `r nrow(brfss_states %>% select("2010") %>% drop_na())` states with 7 or more observation locations in 2010.
+There are `r nrow(brfss_states %>% select("2002") %>% drop_na())` states with 7 or more observation locations in 2002 compared to `r nrow(brfss_states %>% select("2010") %>% drop_na())` states with 7 or more observation locations in 2010. It looks like several more rural states were added between 2002 and 2010 - Alabama, Iowa, Montana, Wyoming, etc.
 
-I'll look at a spaghetti plot of the `mean_data_value` for each `state`.
+I'll look at a spaghetti plot of the `mean_data_value` for each `state`. First, I'll create a reference data frame with every state and region per the US Census Bureau.
+```{r region list}
+NE <- tibble(state = c("CT","ME","MA","NH","RI","VT","NJ","NY","PA"),
+             region = c("northeast"))
+
+MW <- tibble(state = c("IN","IL","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"),
+             region = "midwest")
+
+S <- tibble(state = c("DE","DC","FL","GA","MD","NC","SC","VA","WV","AL","KY","MS","TN","AR","LA","OK","TX"),
+            region = "south")
+
+W <- tibble(state = c("AZ","CO","ID","NM","MT","UT","NV","WY","AK","CA","HI","OR","WA"),
+            region = "west")
+
+region_df <- bind_rows(NE, MW, S, W)
+rm(NE, MW, S, W)
+```
+
 ```{r spaghetti plot}
 brfss_clean %>% 
   filter(response == "Excellent") %>% 
   group_by(state, year) %>% 
   summarize(mean_data_value = mean(data_value)) %>% 
-  ggplot(aes(x = year, y = mean_data_value, group = state, color = state)) +
+  left_join(y = region_df, by = "state") %>% 
+  ggplot(aes(x = year, y = mean_data_value, group = state, color = region)) +
   geom_line() +
   scale_color_viridis_d() +
-  labs(x = "Year", y = "Mean Data Value", title = "Figure 2.1: Mean Data Value by State") +
+  labs(x = "Year", y = "Mean Data Value", title = "Figure 2.1: Mean Data Value by State, Colored by Region") +
   theme(plot.title = element_text(face = "bold"))
 ```
+
+I've used US Census regions to group the various states into geographic regions. Looking at the data by region, it seems like the `south` in green has the most variability with some of the highest values and some of the lowest.
 
 ```{r New York State}
 brfss_clean %>% 
@@ -136,6 +157,8 @@ brfss_clean %>%
   labs(x = "Response", y = "Data Value", title = "Figure 2.2: Data Value Distributions in New York State") +
   theme(plot.title = element_text(face = "bold"))
 ```
+
+It looks like the 2010 values have a bit wider spread compared to 2006, particularly in the "Fair" and "Very Good" categories.
 
 ## Problem 3
 
