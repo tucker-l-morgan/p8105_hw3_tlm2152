@@ -47,7 +47,7 @@ Next, I'll look at the most ordered items in the "baking ingredients", "dog food
 ```{r aisle table}
 aisle_table <- 
   instacart %>% 
-  filter(aisle == c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
   select(aisle, product_name) %>% 
   group_by(aisle, product_name) %>% 
   summarize(n_purch = n()) %>% 
@@ -69,7 +69,7 @@ daily_table <-
   instacart %>% 
   # an update many months later: this should be %in% instead of ==
   # using == only captures half of the observations
-  filter(product_name == c("Coffee Ice Cream", "Pink Lady Apples")) %>% 
+  filter(product_name %in% c("Coffee Ice Cream", "Pink Lady Apples")) %>% 
   select(order_dow, order_hour_of_day, product_name) %>% 
   group_by(product_name, order_dow) %>% 
   summarize(daily_mean = round(mean(order_hour_of_day), digits = 2)) %>% 
